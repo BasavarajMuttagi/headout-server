@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  sentChallenges    Challenge[]        @relation("Challenger")
+  challengeAttempts ChallengeAttempt[]
+  sessionQuestions  SessionQuestion[]
+  gameSessions      GameSession[]
+}
+
+model Country {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  cities City[]
+}
+
+model City {
+  id        String   @id @default(uuid())
+  name      String
+  countryId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  country      Country       @relation(fields: [countryId], references: [id])
+  destinations Destination[]
+
+  // Each city name should be unique within a country
+  @@unique([name, countryId])
+  @@index([name])
+}
+
+model Destination {
+  id        String   @id @default(uuid())
+  cityId    String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  city             City              @relation(fields: [cityId], references: [id])
+  clues            Clue[]
+  funFacts         FunFact[]
+  triviaItems      Trivia[]
+  sessionQuestions SessionQuestion[]
+  questionSets     QuestionSetItem[]
+}
+
+model Clue {
+  id            String   @id @default(uuid())
+  text          String   @db.Text
+  destinationId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model FunFact {
+  id            String   @id @default(uuid())
+  text          String   @db.Text
+  destinationId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model Trivia {
+  id            String   @id @default(uuid())
+  text          String   @db.Text
+  destinationId String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relationships
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+}
+
+model QuestionSet {
+  id        String   @id @default(uuid())
+  name      String?
+  createdAt DateTime @default(now())
+
+  // Relationships
+  questions    QuestionSetItem[]
+  gameSessions GameSession[]
+  challenges   Challenge[]
+}
+
+model QuestionSetItem {
+  id            String @id @default(uuid())
+  questionSetId String
+  destinationId String
+  orderIndex    Int
+
+  // Relationships
+  questionSet QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+
+  @@unique([questionSetId, orderIndex])
+}
+
+model GameSession {
+  id             String    @id @default(uuid())
+  userId         String
+  questionSetId  String
+  score          Int       @default(0)
+  totalQuestions Int       @default(0)
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+
+  // Relationships
+  user               User               @relation(fields: [userId], references: [id])
+  questionSet        QuestionSet        @relation(fields: [questionSetId], references: [id])
+  sessionQuestions   SessionQuestion[]
+  challengerSessions Challenge[]        @relation("ChallengerSession")
+  challengeAttempts  ChallengeAttempt[]
+}
+
+model SessionQuestion {
+  id            String   @id @default(uuid())
+  userId        String
+  sessionId     String
+  destinationId String
+  questionIndex Int
+  isAttempted   Boolean  @default(true)
+  isCorrect     Boolean  @default(false)
+  attemptedAt   DateTime @default(now())
+  errorMessage  String?
+
+  // Relationships
+  user        User        @relation(fields: [userId], references: [id])
+  gameSession GameSession @relation(fields: [sessionId], references: [id])
+  destination Destination @relation(fields: [destinationId], references: [id])
+
+  @@index([sessionId, questionIndex])
+}
+
+model Challenge {
+  id                  String   @id @default(uuid())
+  challengerId        String
+  questionSetId       String
+  challengerSessionId String
+  shareCode           String   @unique @default(cuid())
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  // Relationships
+  challenger        User               @relation("Challenger", fields: [challengerId], references: [id])
+  questionSet       QuestionSet        @relation(fields: [questionSetId], references: [id])
+  challengerSession GameSession        @relation("ChallengerSession", fields: [challengerSessionId], references: [id])
+  challengeAttempts ChallengeAttempt[]
+
+  @@index([challengerId, challengerSessionId])
+  @@index([shareCode])
+}
+
+model ChallengeAttempt {
+  id          String   @id @default(uuid())
+  challengeId String
+  userId      String
+  sessionId   String
+  attemptedAt DateTime @default(now())
+
+  // Relationships
+  challenge   Challenge   @relation(fields: [challengeId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  gameSession GameSession @relation(fields: [sessionId], references: [id])
+
+  @@unique([challengeId, userId])
+}
