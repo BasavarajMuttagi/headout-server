@@ -13,6 +13,9 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
