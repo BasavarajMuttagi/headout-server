@@ -2,26 +2,26 @@ import prisma from "../../prisma/db";
 
 export class DestinationService {
   // Create a destination with city and country
-  async createDestination(
+  static async createDestination(
     cityName: string,
     countryName: string,
     imageUrl?: string,
   ) {
     // Find or create country
     let country = await prisma.country.findUnique({
-      where: { name: countryName },
+      where: { country: countryName },
     });
 
     if (!country) {
       country = await prisma.country.create({
-        data: { name: countryName },
+        data: { country: countryName },
       });
     }
 
     // Find or create city
     let city = await prisma.city.findFirst({
       where: {
-        name: cityName,
+        city: cityName,
         countryId: country.id,
       },
     });
@@ -29,7 +29,7 @@ export class DestinationService {
     if (!city) {
       city = await prisma.city.create({
         data: {
-          name: cityName,
+          city: cityName,
           countryId: country.id,
         },
       });
@@ -45,7 +45,7 @@ export class DestinationService {
   }
 
   // Get destination by ID with related data
-  async getDestinationById(id: string) {
+  static async getDestinationById(id: string) {
     return prisma.destination.findUnique({
       where: { id },
       include: {
@@ -62,7 +62,7 @@ export class DestinationService {
   }
 
   // Get all destinations
-  async getAllDestinations(limit = 100, offset = 0) {
+  static async getAllDestinations(limit = 100, offset = 0) {
     return prisma.destination.findMany({
       include: {
         city: {
@@ -77,7 +77,7 @@ export class DestinationService {
   }
 
   // Add clue to destination
-  async addClue(destinationId: string, text: string) {
+  static async addClue(destinationId: string, text: string) {
     return prisma.clue.create({
       data: {
         text,
@@ -87,7 +87,7 @@ export class DestinationService {
   }
 
   // Add fun fact to destination
-  async addFunFact(destinationId: string, text: string) {
+  static async addFunFact(destinationId: string, text: string) {
     return prisma.funFact.create({
       data: {
         text,
@@ -97,7 +97,7 @@ export class DestinationService {
   }
 
   // Add trivia to destination
-  async addTrivia(destinationId: string, text: string) {
+  static async addTrivia(destinationId: string, text: string) {
     return prisma.trivia.create({
       data: {
         text,
@@ -107,7 +107,7 @@ export class DestinationService {
   }
 
   // Update destination
-  async updateDestination(id: string, data: { imageUrl?: string }) {
+  static async updateDestination(id: string, data: { imageUrl?: string }) {
     return prisma.destination.update({
       where: { id },
       data,
@@ -115,7 +115,7 @@ export class DestinationService {
   }
 
   // Delete destination
-  async deleteDestination(id: string) {
+  static async deleteDestination(id: string) {
     return prisma.destination.delete({
       where: { id },
     });

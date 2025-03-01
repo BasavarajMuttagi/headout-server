@@ -2,10 +2,9 @@ import prisma from "../../prisma/db";
 
 export class QuestionSetService {
   // Create a new question set with destinations
-  async createQuestionSet(name: string | null, destinationIds: string[]) {
+  async createQuestionSet(destinationIds: string[]) {
     return prisma.questionSet.create({
       data: {
-        name,
         questions: {
           create: destinationIds.map((destinationId, index) => ({
             destinationId,

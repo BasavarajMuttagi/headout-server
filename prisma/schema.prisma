@@ -22,7 +22,7 @@ model User {
 
 model Country {
   id        String   @id @default(uuid())
-  name      String   @unique
+  country   String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -32,7 +32,7 @@ model Country {
 
 model City {
   id        String   @id @default(uuid())
-  name      String
+  city      String
   countryId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -41,9 +41,9 @@ model City {
   country      Country       @relation(fields: [countryId], references: [id])
   destinations Destination[]
 
-  // Each city name should be unique within a country
-  @@unique([name, countryId])
-  @@index([name])
+  // Each city should be unique within a country
+  @@unique([city, countryId])
+  @@index([city])
 }
 
 model Destination {
@@ -97,7 +97,6 @@ model Trivia {
 
 model QuestionSet {
   id        String   @id @default(uuid())
-  name      String?
   createdAt DateTime @default(now())
 
   // Relationships
