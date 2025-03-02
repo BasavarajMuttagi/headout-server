@@ -8,7 +8,7 @@ export class QuestionSetService {
       questionNumber: number;
       destinationId: string;
       optionDestinationsIds: string[];
-    }[],
+    }[]
   ) {
     return prisma.questionSet.create({
       data: {
@@ -16,7 +16,11 @@ export class QuestionSetService {
           create: questions.map((question) => ({
             destinationId: question.destinationId,
             questionNumber: question.questionNumber,
-            optionDestinationsIds: question.optionDestinationsIds,
+            options: {
+              create: question.optionDestinationsIds.map((id) => ({
+                destinationId: id,
+              })),
+            },
             totalQuestions: questions.length,
           })),
         },

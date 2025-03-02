@@ -1,10 +1,10 @@
 import prisma from "../../prisma/db";
 
-export const gameSessionService = {
+export class GameSessionService {
   // Start a new game session
-  async startGameSession(userId: string, questionSetId: string) {
+  static async startGameSession(userId: string, questionSetId: string) {
     // Get the number of questions in the set
-    const questionCount = await prisma.questionSetItem.count({
+    const questionCount = await prisma.question.count({
       where: { questionSetId },
     });
 
@@ -15,10 +15,10 @@ export const gameSessionService = {
         totalQuestions: questionCount,
       },
     });
-  },
+  }
 
   // Get session by ID
-  async getSessionById(id: string) {
+  static async getSessionById(id: string) {
     return prisma.gameSession.findUnique({
       where: { id },
       include: {
@@ -42,15 +42,15 @@ export const gameSessionService = {
         },
       },
     });
-  },
+  }
 
   // Record an answer to a question
-  async answerQuestion(
+  static async answerQuestion(
     sessionId: string,
     userId: string,
     destinationId: string,
     questionNumber: number,
-    isCorrect: boolean,
+    isCorrect: boolean
   ) {
     // Create the session question record
     const sessionQuestion = await prisma.sessionQuestion.create({
@@ -74,20 +74,26 @@ export const gameSessionService = {
     });
 
     return sessionQuestion;
-  },
+  }
 
   // End a game session
-  async endGameSession(id: string) {
+  static async endGameSession(id: string) {
     return prisma.gameSession.update({
       where: { id },
       data: {
         endedAt: new Date(),
       },
     });
-  },
+  }
+
+  static async getQuestion(questionId: string) {
+    return prisma.question.findUnique({
+      where: { id: questionId },
+    });
+  }
 
   // Get user's game history
-  async getUserGameHistory(userId: string, limit = 10) {
+  static async getUserGameHistory(userId: string, limit = 10) {
     return prisma.gameSession.findMany({
       where: { userId },
       orderBy: { startedAt: "desc" },
@@ -101,5 +107,62 @@ export const gameSessionService = {
         },
       },
     });
-  },
-};
+  }
+  static async getQuestionByNumber(
+    questionSetId: string,
+    questionNumber: number
+  ) {
+    return prisma.question.findUnique({
+      where: {
+        questionSetId_questionNumber: {
+          questionSetId,
+          questionNumber,
+        },
+      },
+      select: {
+        id: true,
+        questionNumber: true,
+        totalQuestions: true,
+        destination: {
+          select: {
+            imageUrl: true,
+            clues: {
+              select: {
+                text: true,
+              },
+            },
+            funFacts: {
+              select: {
+                text: true,
+              },
+            },
+            triviaItems: {
+              select: {
+                text: true,
+              },
+            },
+          },
+        },
+        options: {
+          select: {
+            destination: {
+              select: {
+                id: true,
+                city: {
+                  select: {
+                    city: true,
+                    country: {
+                      select: {
+                        country: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+}

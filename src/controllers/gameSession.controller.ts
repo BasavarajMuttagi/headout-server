@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { gameSessionService } from "../services/GameSessionService";
+import { GameSessionService } from "../services/GameSessionService";
 import { QuestionSetService } from "../services/QuestionSetService";
 
 const startGameSession = async (req: Request, res: Response) => {
@@ -22,12 +22,11 @@ const startGameSession = async (req: Request, res: Response) => {
       };
       return eachQuestion;
     });
-    console.log(questions);
+
     const questionSet = await QuestionSetService.createQuestionSet(questions);
-    console.log(JSON.stringify(questionSet));
-    const newSession = await gameSessionService.startGameSession(
+    const newSession = await GameSessionService.startGameSession(
       userId,
-      questionSet.id,
+      questionSet.id
     );
     res.status(201).json(newSession);
   } catch (error) {
@@ -38,8 +37,8 @@ const startGameSession = async (req: Request, res: Response) => {
 
 const getSessionById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
-    const session = await gameSessionService.getSessionById(id);
+    const { sessionId } = req.params;
+    const session = await GameSessionService.getSessionById(sessionId);
 
     if (!session) {
       res.status(404).json({ message: "Game session not found" });
@@ -55,15 +54,16 @@ const getSessionById = async (req: Request, res: Response) => {
 
 const answerQuestion = async (req: Request, res: Response) => {
   try {
-    const { sessionId, userId, destinationId, questionIndex, isCorrect } =
-      req.body;
+    const user = req.body.user;
+    const userId = user.userId;
+    const { sessionId, questionId } = req.params;
+    const { destinationId, questionNumber } = req.body;
 
     if (
       !sessionId ||
       !userId ||
       !destinationId ||
-      questionIndex === undefined ||
-      isCorrect === undefined
+      questionNumber === undefined
     ) {
       res.status(400).json({
         message:
@@ -71,14 +71,18 @@ const answerQuestion = async (req: Request, res: Response) => {
       });
       return;
     }
-    const sessionQuestion = await gameSessionService.answerQuestion(
+    const question = await GameSessionService.getQuestion(questionId);
+    await GameSessionService.answerQuestion(
       sessionId,
       userId,
       destinationId,
-      questionIndex,
-      isCorrect,
+      questionNumber,
+      question?.destinationId === destinationId
     );
-    res.status(201).json(sessionQuestion); // 201 Created for creating a resource
+    res.status(201).json({
+      validity: question?.destinationId === destinationId,
+      destinationId: question?.destinationId,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to answer question" });
@@ -88,7 +92,7 @@ const answerQuestion = async (req: Request, res: Response) => {
 const endGameSession = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updatedSession = await gameSessionService.endGameSession(id);
+    const updatedSession = await GameSessionService.endGameSession(id);
 
     if (!updatedSession) {
       res.status(404).json({ message: "Game session not found" });
@@ -112,9 +116,9 @@ const getUserGameHistory = async (req: Request, res: Response) => {
       return;
     }
 
-    const gameHistory = await gameSessionService.getUserGameHistory(
+    const gameHistory = await GameSessionService.getUserGameHistory(
       userId,
-      limitNumber,
+      limitNumber
     );
     res.json(gameHistory);
   } catch (error) {
@@ -123,9 +127,45 @@ const getUserGameHistory = async (req: Request, res: Response) => {
   }
 };
 
+const getQuestionByNumber = async (req: Request, res: Response) => {
+  try {
+    const { sessionId, questionNumber } = req.params;
+    console.log(sessionId, questionNumber);
+    const session = await GameSessionService.getSessionById(sessionId);
+
+    if (!session) {
+      res.status(404).json({ message: "session not found" });
+      return;
+    }
+
+    const question = await GameSessionService.getQuestionByNumber(
+      session.questionSetId,
+      parseInt(questionNumber)
+    );
+
+    const options = question?.options.map((option) => ({
+      id: option.destination.id,
+      city: option.destination.city.city,
+      country: option.destination.city.country.country,
+    }));
+
+    res.json({
+      ...question?.destination,
+      options,
+      id: question?.id,
+      totalQuestions: question?.totalQuestions,
+      questionNumber: question?.questionNumber,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to get question set" });
+  }
+};
+
 export {
   answerQuestion,
   endGameSession,
+  getQuestionByNumber,
   getSessionById,
   getUserGameHistory,
   startGameSession,

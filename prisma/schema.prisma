@@ -59,7 +59,8 @@ model Destination {
   funFacts         FunFact[]
   triviaItems      Trivia[]
   sessionQuestions SessionQuestion[]
-  questionSets     QuestionSetItem[]
+  Option           Option[]
+  Question         Question[]
 }
 
 model Clue {
@@ -100,23 +101,32 @@ model QuestionSet {
   createdAt DateTime @default(now())
 
   // Relationships
-  questions    QuestionSetItem[]
+  questions    Question[]
   gameSessions GameSession[]
   challenges   Challenge[]
 }
 
-model QuestionSetItem {
-  id                    String      @id @default(uuid())
-  questionNumber        Int
-  totalQuestions        Int
-  questionSetId         String
-  destinationId         String
-  optionDestinationsIds String[]
+model Question {
+  id             String      @id @default(uuid())
+  questionNumber Int
+  totalQuestions Int
+  questionSetId  String
+  destinationId  String
   // Relationships
-  questionSet           QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
-  destination           Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  destination    Destination @relation(fields: [destinationId], references: [id])
+  questionSet    QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  options        Option[]    @relation("QuestionOptions")
 
   @@unique([questionSetId, questionNumber])
+}
+
+model Option {
+  id            String      @id @default(uuid())
+  questionId    String
+  destinationId String
+  // Relationships
+  question      Question    @relation("QuestionOptions", fields: [questionId], references: [id], onDelete: Cascade)
+  destination   Destination @relation(fields: [destinationId], references: [id])
 }
 
 model GameSession {
