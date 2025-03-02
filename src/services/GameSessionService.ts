@@ -50,7 +50,7 @@ export class GameSessionService {
     userId: string,
     destinationId: string,
     questionNumber: number,
-    isCorrect: boolean
+    isCorrect: boolean,
   ) {
     // Create the session question record
     const sessionQuestion = await prisma.sessionQuestion.create({
@@ -77,9 +77,9 @@ export class GameSessionService {
   }
 
   // End a game session
-  static async endGameSession(id: string) {
+  static async endGameSession(sessionId: string) {
     return prisma.gameSession.update({
-      where: { id },
+      where: { id: sessionId },
       data: {
         endedAt: new Date(),
       },
@@ -110,7 +110,7 @@ export class GameSessionService {
   }
   static async getQuestionByNumber(
     questionSetId: string,
-    questionNumber: number
+    questionNumber: number,
   ) {
     return prisma.question.findUnique({
       where: {

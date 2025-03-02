@@ -8,7 +8,7 @@ export class QuestionSetService {
       questionNumber: number;
       destinationId: string;
       optionDestinationsIds: string[];
-    }[]
+    }[],
   ) {
     return prisma.questionSet.create({
       data: {

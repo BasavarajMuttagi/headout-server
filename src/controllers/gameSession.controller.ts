@@ -1,3 +1,4 @@
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Request, Response } from "express";
 import { GameSessionService } from "../services/GameSessionService";
 import { QuestionSetService } from "../services/QuestionSetService";
@@ -26,7 +27,7 @@ const startGameSession = async (req: Request, res: Response) => {
     const questionSet = await QuestionSetService.createQuestionSet(questions);
     const newSession = await GameSessionService.startGameSession(
       userId,
-      questionSet.id
+      questionSet.id,
     );
     res.status(201).json(newSession);
   } catch (error) {
@@ -77,11 +78,15 @@ const answerQuestion = async (req: Request, res: Response) => {
       userId,
       destinationId,
       questionNumber,
-      question?.destinationId === destinationId
+      question?.destinationId === destinationId,
     );
+    if (question?.questionNumber === question?.totalQuestions) {
+      await GameSessionService.endGameSession(sessionId);
+    }
     res.status(201).json({
       validity: question?.destinationId === destinationId,
       destinationId: question?.destinationId,
+      isComplete: question?.questionNumber === question?.totalQuestions,
     });
   } catch (error) {
     console.error(error);
@@ -118,7 +123,7 @@ const getUserGameHistory = async (req: Request, res: Response) => {
 
     const gameHistory = await GameSessionService.getUserGameHistory(
       userId,
-      limitNumber
+      limitNumber,
     );
     res.json(gameHistory);
   } catch (error) {
@@ -130,7 +135,6 @@ const getUserGameHistory = async (req: Request, res: Response) => {
 const getQuestionByNumber = async (req: Request, res: Response) => {
   try {
     const { sessionId, questionNumber } = req.params;
-    console.log(sessionId, questionNumber);
     const session = await GameSessionService.getSessionById(sessionId);
 
     if (!session) {
@@ -140,7 +144,7 @@ const getQuestionByNumber = async (req: Request, res: Response) => {
 
     const question = await GameSessionService.getQuestionByNumber(
       session.questionSetId,
-      parseInt(questionNumber)
+      parseInt(questionNumber),
     );
 
     const options = question?.options.map((option) => ({
@@ -157,8 +161,29 @@ const getQuestionByNumber = async (req: Request, res: Response) => {
       questionNumber: question?.questionNumber,
     });
   } catch (error) {
-    console.error(error);
+    console.log(error);
+    if (error instanceof PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        res.status(500).json({ message: "Already Answered" });
+        return;
+      }
+    }
     res.status(500).json({ message: "Failed to get question set" });
+  }
+};
+
+const getScore = async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await GameSessionService.getSessionById(sessionId);
+    if (!sessionId) {
+      res.status(404).json({ message: "session not found" });
+      return;
+    }
+    res.json({ score: session?.score });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch session" });
   }
 };
 
@@ -166,6 +191,7 @@ export {
   answerQuestion,
   endGameSession,
   getQuestionByNumber,
+  getScore,
   getSessionById,
   getUserGameHistory,
   startGameSession,

@@ -3,6 +3,7 @@ import {
   answerQuestion,
   endGameSession,
   getQuestionByNumber,
+  getScore,
   getSessionById,
   getUserGameHistory,
   startGameSession,
@@ -15,12 +16,14 @@ GameSessionRouter.get("/:id", getSessionById);
 GameSessionRouter.post(
   "/answer/:sessionId/:questionId",
   validateToken,
-  answerQuestion
+  answerQuestion,
 );
 GameSessionRouter.put("/:id/end", endGameSession);
 GameSessionRouter.get("/user/:userId", getUserGameHistory);
 GameSessionRouter.get(
   "/question/:sessionId/:questionNumber",
-  getQuestionByNumber
+  getQuestionByNumber,
 );
+GameSessionRouter.get("/session/:sessionId/score", getScore);
+
 export default GameSessionRouter;
