@@ -1,37 +1,54 @@
+import { Destination } from "@prisma/client";
 import prisma from "../../prisma/db";
 
 export class QuestionSetService {
   // Create a new question set with destinations
-  static async createQuestionSet(destinationIds: string[]) {
+  static async createQuestionSet(
+    questions: {
+      questionNumber: number;
+      destinationId: string;
+      optionDestinationsIds: string[];
+    }[],
+  ) {
     return prisma.questionSet.create({
       data: {
         questions: {
-          create: destinationIds.map((destinationId, index) => ({
-            destinationId,
-            questionNumber: index + 1,
+          create: questions.map((question) => ({
+            destinationId: question.destinationId,
+            questionNumber: question.questionNumber,
+            optionDestinationsIds: question.optionDestinationsIds,
+            totalQuestions: questions.length,
           })),
-        },
-      },
-      include: {
-        questions: {
-          include: {
-            destination: true,
-          },
         },
       },
     });
   }
 
   // Get random destinations for a new question set
-  static async getRandomDestinations(count = 10) {
-    const destinations = await prisma.destination.findMany({
-      take: count,
-      orderBy: {
-        id: "asc",
-      },
+  static async generateRandomDestinationIds(count = 10) {
+    const results = await prisma.$transaction(async (prisma) => {
+      const arrays = [];
+      for (let i = 0; i < count; i++) {
+        const destinationIds: Destination[] = await prisma.$queryRaw`
+        WITH random_countries AS (
+          SELECT co.id AS "countryId"
+          FROM "Country" co 
+          ORDER BY RANDOM()
+          LIMIT 4
+        )
+        SELECT d.id
+        FROM random_countries rc
+        JOIN "Country" co ON co.id = rc."countryId"
+        JOIN "City" ci ON ci."countryId" = co.id
+        JOIN "Destination" d ON d."cityId" = ci.id
+        ORDER BY RANDOM()
+        LIMIT 4
+      `;
+        arrays.push(destinationIds.map((d) => d.id));
+      }
+      return arrays;
     });
-
-    return destinations.map((d) => d.id);
+    return results;
   }
 
   // Get question set by ID

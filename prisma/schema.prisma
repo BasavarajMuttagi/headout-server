@@ -106,14 +106,15 @@ model QuestionSet {
 }
 
 model QuestionSetItem {
-  id             String @id @default(uuid())
-  questionSetId  String
-  destinationId  String
-  questionNumber Int
-
+  id                    String      @id @default(uuid())
+  questionNumber        Int
+  totalQuestions        Int
+  questionSetId         String
+  destinationId         String
+  optionDestinationsIds String[]
   // Relationships
-  questionSet QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
-  destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
+  questionSet           QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  destination           Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
 
   @@unique([questionSetId, questionNumber])
 }

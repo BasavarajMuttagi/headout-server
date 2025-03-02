@@ -10,10 +10,21 @@ const startGameSession = async (req: Request, res: Response) => {
       res.status(400).json({ message: "token missing" });
       return;
     }
-    const destinationIds = await QuestionSetService.getRandomDestinations(10);
-    const questionSet =
-      await QuestionSetService.createQuestionSet(destinationIds);
+    const destinationsAofA =
+      await QuestionSetService.generateRandomDestinationIds();
 
+    const questions = destinationsAofA.map((destinations, index) => {
+      const [correctDestination, ...optionDestinations] = destinations;
+      const eachQuestion = {
+        questionNumber: index + 1,
+        destinationId: correctDestination,
+        optionDestinationsIds: [correctDestination, ...optionDestinations],
+      };
+      return eachQuestion;
+    });
+    console.log(questions);
+    const questionSet = await QuestionSetService.createQuestionSet(questions);
+    console.log(JSON.stringify(questionSet));
     const newSession = await gameSessionService.startGameSession(
       userId,
       questionSet.id,
@@ -113,9 +124,9 @@ const getUserGameHistory = async (req: Request, res: Response) => {
 };
 
 export {
-  startGameSession,
   answerQuestion,
-  getSessionById,
   endGameSession,
+  getSessionById,
   getUserGameHistory,
+  startGameSession,
 };

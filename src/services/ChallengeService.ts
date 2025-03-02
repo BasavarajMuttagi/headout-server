@@ -33,7 +33,7 @@ export class ChallengeService {
           include: {
             questions: {
               orderBy: {
-                orderIndex: "asc",
+                questionNumber: "asc",
               },
               include: {
                 destination: true,
