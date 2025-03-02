@@ -1,5 +1,8 @@
+import { User } from "@prisma/client";
+import { config } from "dotenv";
+import jwt from "jsonwebtoken";
 import prisma from "../../prisma/db";
-
+config();
 export class UserService {
   // Create a new user
   static async createUser(username: string) {
@@ -27,5 +30,13 @@ export class UserService {
     return prisma.user.delete({
       where: { id },
     });
+  }
+
+  static async generateToken(user: User) {
+    return jwt.sign(
+      { userId: user.id, username: user.username },
+      process.env.SECRET_SALT!,
+      { expiresIn: "7d" },
+    );
   }
 }

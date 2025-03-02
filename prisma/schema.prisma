@@ -106,16 +106,16 @@ model QuestionSet {
 }
 
 model QuestionSetItem {
-  id            String @id @default(uuid())
-  questionSetId String
-  destinationId String
-  orderIndex    Int
+  id             String @id @default(uuid())
+  questionSetId  String
+  destinationId  String
+  questionNumber Int
 
   // Relationships
   questionSet QuestionSet @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
   destination Destination @relation(fields: [destinationId], references: [id], onDelete: Cascade)
 
-  @@unique([questionSetId, orderIndex])
+  @@unique([questionSetId, questionNumber])
 }
 
 model GameSession {
@@ -136,22 +136,21 @@ model GameSession {
 }
 
 model SessionQuestion {
-  id            String   @id @default(uuid())
-  userId        String
-  sessionId     String
-  destinationId String
-  questionIndex Int
-  isAttempted   Boolean  @default(true)
-  isCorrect     Boolean  @default(false)
-  attemptedAt   DateTime @default(now())
-  errorMessage  String?
+  id             String   @id @default(uuid())
+  userId         String
+  sessionId      String
+  destinationId  String
+  questionNumber Int
+  isAttempted    Boolean  @default(true)
+  isCorrect      Boolean  @default(false)
+  attemptedAt    DateTime @default(now())
 
   // Relationships
   user        User        @relation(fields: [userId], references: [id])
   gameSession GameSession @relation(fields: [sessionId], references: [id])
   destination Destination @relation(fields: [destinationId], references: [id])
 
-  @@index([sessionId, questionIndex])
+  @@index([sessionId, questionNumber])
 }
 
 model Challenge {

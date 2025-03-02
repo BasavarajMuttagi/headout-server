@@ -6,9 +6,10 @@ import {
   getUserByUserName,
 } from "../controllers/user.controller";
 
-const UserRoute = express.Router();
+const UserRouter = express.Router();
 
-UserRoute.post("/", createUser);
-UserRoute.get("/:id", getUserByID);
-UserRoute.get("/:username", getUserByUserName);
-UserRoute.delete("/:id", deleteUser);
+UserRouter.post("/create", createUser);
+UserRouter.get("/:id", getUserByID);
+UserRouter.get("/:username", getUserByUserName);
+UserRouter.delete("/:id", deleteUser);
+export default UserRouter;

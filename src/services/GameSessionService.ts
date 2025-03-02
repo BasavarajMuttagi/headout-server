@@ -27,7 +27,7 @@ export const gameSessionService = {
           include: {
             questions: {
               orderBy: {
-                orderIndex: "asc",
+                questionNumber: "asc",
               },
               include: {
                 destination: true,
@@ -37,7 +37,7 @@ export const gameSessionService = {
         },
         sessionQuestions: {
           orderBy: {
-            questionIndex: "asc",
+            questionNumber: "asc",
           },
         },
       },
@@ -49,7 +49,7 @@ export const gameSessionService = {
     sessionId: string,
     userId: string,
     destinationId: string,
-    questionIndex: number,
+    questionNumber: number,
     isCorrect: boolean,
   ) {
     // Create the session question record
@@ -58,7 +58,7 @@ export const gameSessionService = {
         userId,
         sessionId,
         destinationId,
-        questionIndex,
+        questionNumber,
         isCorrect,
       },
     });

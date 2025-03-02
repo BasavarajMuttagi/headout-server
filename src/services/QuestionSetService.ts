@@ -2,13 +2,13 @@ import prisma from "../../prisma/db";
 
 export class QuestionSetService {
   // Create a new question set with destinations
-  async createQuestionSet(destinationIds: string[]) {
+  static async createQuestionSet(destinationIds: string[]) {
     return prisma.questionSet.create({
       data: {
         questions: {
           create: destinationIds.map((destinationId, index) => ({
             destinationId,
-            orderIndex: index,
+            questionNumber: index + 1,
           })),
         },
       },
@@ -23,7 +23,7 @@ export class QuestionSetService {
   }
 
   // Get random destinations for a new question set
-  async getRandomDestinations(count = 10) {
+  static async getRandomDestinations(count = 10) {
     const destinations = await prisma.destination.findMany({
       take: count,
       orderBy: {
@@ -35,13 +35,13 @@ export class QuestionSetService {
   }
 
   // Get question set by ID
-  async getQuestionSetById(id: string) {
+  static async getQuestionSetById(id: string) {
     return prisma.questionSet.findUnique({
       where: { id },
       include: {
         questions: {
           orderBy: {
-            orderIndex: "asc",
+            questionNumber: "asc",
           },
           include: {
             destination: {
@@ -63,7 +63,7 @@ export class QuestionSetService {
   }
 
   // Delete question set
-  async deleteQuestionSet(id: string) {
+  static async deleteQuestionSet(id: string) {
     return prisma.questionSet.delete({
       where: { id },
     });

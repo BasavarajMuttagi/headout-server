@@ -9,8 +9,15 @@ const createUser = async (req: Request, res: Response) => {
       res.status(400).json({ message: "Username is required" });
       return;
     }
+    const user = await UserService.getUserByUsername(username);
+    if (user) {
+      const token = await UserService.generateToken(user);
+      res.status(200).json({ token });
+      return;
+    }
     const newUser = await UserService.createUser(username);
-    res.status(201).json(newUser);
+    const token = await UserService.generateToken(newUser);
+    res.status(201).json({ token });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Failed to create user" });
@@ -26,6 +33,7 @@ const getUserByID = async (req: Request, res: Response) => {
       res.status(404).json({ message: "User not found" });
       return;
     }
+
     res.json(user);
   } catch (error) {
     console.error(error);
