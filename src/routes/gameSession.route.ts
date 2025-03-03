@@ -5,6 +5,7 @@ import {
   getQuestionByNumber,
   getScore,
   getSessionById,
+  getStats,
   getUserGameHistory,
   startGameSession,
 } from "../controllers/gameSession.controller";
@@ -18,12 +19,14 @@ GameSessionRouter.post(
   validateToken,
   answerQuestion,
 );
-GameSessionRouter.put("/:id/end", endGameSession);
-GameSessionRouter.get("/user/:userId", getUserGameHistory);
+GameSessionRouter.put("/:id/end", validateToken, endGameSession);
+GameSessionRouter.get("/user/:userId", validateToken, getUserGameHistory);
 GameSessionRouter.get(
   "/question/:sessionId/:questionNumber",
+  validateToken,
   getQuestionByNumber,
 );
-GameSessionRouter.get("/session/:sessionId/score", getScore);
+GameSessionRouter.get("/session/:sessionId/score", validateToken, getScore);
+GameSessionRouter.get("/session/:sessionId/stats", validateToken, getStats);
 
 export default GameSessionRouter;

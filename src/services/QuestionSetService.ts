@@ -54,39 +54,4 @@ export class QuestionSetService {
     });
     return results;
   }
-
-  // Get question set by ID
-  static async getQuestionSetById(id: string) {
-    return prisma.questionSet.findUnique({
-      where: { id },
-      include: {
-        questions: {
-          orderBy: {
-            questionNumber: "asc",
-          },
-          include: {
-            destination: {
-              include: {
-                city: {
-                  include: {
-                    country: true,
-                  },
-                },
-                clues: true,
-                funFacts: true,
-                triviaItems: true,
-              },
-            },
-          },
-        },
-      },
-    });
-  }
-
-  // Delete question set
-  static async deleteQuestionSet(id: string) {
-    return prisma.questionSet.delete({
-      where: { id },
-    });
-  }
 }

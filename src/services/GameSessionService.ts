@@ -91,6 +91,31 @@ export class GameSessionService {
       where: { id: questionId },
     });
   }
+  static async getGameStats(sessionId: string) {
+    return prisma.gameSession.findUnique({
+      where: {
+        id: sessionId,
+      },
+      select: {
+        totalQuestions: true,
+        score: true,
+        _count: {
+          select: {
+            sessionQuestions: {
+              where: {
+                isAttempted: {
+                  equals: true,
+                },
+                isCorrect: {
+                  equals: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
 
   // Get user's game history
   static async getUserGameHistory(userId: string, limit = 10) {

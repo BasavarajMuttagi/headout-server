@@ -24,23 +24,6 @@ const createUser = async (req: Request, res: Response) => {
   }
 };
 
-// Get user by ID
-const getUserByID = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const user = await UserService.getUserById(id);
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to get user" });
-  }
-};
-
 // Get user by username
 const getUserByUserName = async (req: Request, res: Response) => {
   try {
@@ -72,4 +55,4 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
-export { createUser, deleteUser, getUserByID, getUserByUserName };
+export { createUser, deleteUser, getUserByUserName };

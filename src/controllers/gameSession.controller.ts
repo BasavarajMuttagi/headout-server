@@ -2,15 +2,20 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Request, Response } from "express";
 import { GameSessionService } from "../services/GameSessionService";
 import { QuestionSetService } from "../services/QuestionSetService";
-
+const shuffleArray = (array: string[]) => {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+};
 const startGameSession = async (req: Request, res: Response) => {
   try {
     const user = req.body.user;
     const userId = user.userId;
-    if (!userId) {
-      res.status(400).json({ message: "token missing" });
-      return;
-    }
+
     const destinationsAofA =
       await QuestionSetService.generateRandomDestinationIds();
 
@@ -19,7 +24,10 @@ const startGameSession = async (req: Request, res: Response) => {
       const eachQuestion = {
         questionNumber: index + 1,
         destinationId: correctDestination,
-        optionDestinationsIds: [correctDestination, ...optionDestinations],
+        optionDestinationsIds: shuffleArray([
+          correctDestination,
+          ...optionDestinations,
+        ]),
       };
       return eachQuestion;
     });
@@ -187,7 +195,23 @@ const getScore = async (req: Request, res: Response) => {
   }
 };
 
+const getStats = async (req: Request, res: Response) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await GameSessionService.getGameStats(sessionId);
+    if (!sessionId) {
+      res.status(404).json({ message: "session not found" });
+      return;
+    }
+    res.json(session);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch session" });
+  }
+};
+
 export {
+  getStats,
   answerQuestion,
   endGameSession,
   getQuestionByNumber,
